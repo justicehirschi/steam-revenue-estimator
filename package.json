@@ -1,0 +1,14 @@
+{
+    "name": "steam-revenue-estimator",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Chrome extension that shows estimated revenue on Steam store pages.",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.287",
+        "typescript": "^5.6.3"
+    }
+}

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Steam Revenue Estimator</title>
+    <style>
+        :root {
+            --surface: #f6f6f4;
+            --panel: #ffffff;
+            --panel-raised: #fcfcfb;
+            --border: #e6e5e1;
+            --ink: #1f1f1d;
+            --ink-muted: #6b6a65;
+            --ink-faint: #9a9993;
+            --accent: #2a78d6;
+            --accent-soft: rgba(42, 120, 214, 0.1);
+            --bar: #2a78d6;
+            --whisker: #1f1f1d;
+            --grid: #eeede9;
+            --baseline: #c9c8c3;
+            --row-hover: rgba(42, 120, 214, 0.06);
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+            --good: #2a7a2a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface: #141413;
+                --panel: #1e1e1c;
+                --panel-raised: #242422;
+                --border: #33332f;
+                --ink: #ecebe7;
+                --ink-muted: #a3a29c;
+                --ink-faint: #75746e;
+                --accent: #3987e5;
+                --accent-soft: rgba(57, 135, 229, 0.16);
+                --bar: #3987e5;
+                --whisker: #ecebe7;
+                --grid: #2a2a27;
+                --baseline: #4a4a45;
+                --row-hover: rgba(57, 135, 229, 0.09);
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+                --good: #6cc56c;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--surface);
+            color: var(--ink);
+            font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        main { max-width: 1320px; margin: 0 auto; padding: 40px 16px 72px; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .muted { color: var(--ink-muted); }
+        .small { font-size: 12px; }
+
+        .page-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--accent);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+        .logo svg { width: 22px; height: 22px; }
+        h1 { font-size: 22px; letter-spacing: -0.01em; margin: 0; }
+        .page-header p { margin: 2px 0 0; color: var(--ink-muted); }
+
+        h2 { font-size: 16px; margin: 0; letter-spacing: -0.005em; }
+        h3 { font-size: 14px; margin: 0; }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        section + section { margin-top: 20px; }
+
+        .row-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        button, select, input {
+            font: inherit;
+            color: var(--ink);
+            background: var(--panel-raised);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        button { padding: 6px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+        button:hover { border-color: var(--ink-faint); }
+        button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        select { padding: 6px 10px; cursor: pointer; }
+        .primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+        .primary:hover { filter: brightness(1.08); border-color: var(--accent); }
+        .danger { color: #c0392b; }
+        .danger:hover { border-color: #c0392b; background: rgba(192, 57, 43, 0.08); }
+        @media (prefers-color-scheme: dark) { .danger { color: #ff7b6b; } .danger:hover { border-color: #ff7b6b; background: rgba(255, 123, 107, 0.1); } }
+        .link-button { border: none; background: none; padding: 2px 4px; color: var(--accent); font-size: 13px; }
+
+        .segmented { display: inline-flex; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-raised); }
+        .segmented button { border: none; background: none; padding: 4px 12px; border-radius: 6px; font-size: 13px; color: var(--ink-muted); }
+        .segmented button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .tile { padding: 16px 18px; }
+        .tile-label { font-size: 12px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+        .tile-value { margin-top: 4px; font-size: 24px; font-weight: 650; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
+        .charts { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .chart-card .row-head { margin-bottom: 8px; min-height: 34px; }
+        .chart-note { margin: 0 0 12px; font-size: 12px; color: var(--ink-faint); }
+
+        .chart { position: relative; }
+        .chart svg { display: block; overflow: visible; }
+        .chart .grid { stroke: var(--grid); stroke-width: 1; }
+        .chart .baseline { stroke: var(--baseline); stroke-width: 1; }
+        .chart .tick { fill: var(--ink-faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+        .chart .row-label { fill: var(--ink); font-size: 12.5px; }
+        .chart .value { fill: var(--ink-muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .chart .bar { fill: var(--bar); transform-box: fill-box; transform-origin: center bottom; animation: grow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--delay, 0ms); }
+        .chart .whisker { stroke: var(--whisker); stroke-width: 1.5; stroke-linecap: round; opacity: 0.55; }
+        .chart .hit { fill: transparent; transition: fill 0.12s; }
+        .chart .chart-row:hover .hit { fill: var(--row-hover); }
+        .chart .chart-row:hover .whisker { opacity: 0.9; }
+
+        @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        @media (prefers-reduced-motion: reduce) { .chart .bar { animation: none; } }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            padding: 8px 12px;
+            background: var(--panel-raised);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: nowrap;
+            z-index: 2;
+        }
+        .tooltip-title { font-weight: 650; margin-bottom: 2px; }
+
+        /* overflow: clip (not hidden/auto) so the sticky header follows the page scroll. */
+        .table-card { margin-top: 20px; padding: 0; overflow: clip; }
+        .table-card .row-head { padding: 18px 20px 0; margin-bottom: 8px; }
+        .table-wrap { overflow-x: clip; }
+        /* Too narrow for the table: scroll it sideways instead (the header then stops sticking). */
+        @media (max-width: 1100px) { .table-wrap { overflow-x: auto; } }
+        table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+        th, td { padding: 10px 10px; border-top: 1px solid var(--border); text-align: left; vertical-align: middle; }
+        th:first-child, td:first-child { padding-left: 20px; }
+        th:last-child, td:last-child { padding-right: 16px; }
+        th { font-size: 11px; color: var(--ink-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; border-top: none; }
+        /* A fixed Game column means spare width is shared out across the other columns instead of pooling here. */
+        thead th:first-child { width: 380px; }
+        thead th { position: sticky; top: 0; z-index: 1; background: var(--panel); box-shadow: inset 0 -1px 0 var(--border); }
+        td { white-space: nowrap; }
+        .numeric { text-align: right; }
+        th button.sort { border: none; background: none; padding: 0; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+        th[aria-sort] button.sort { color: var(--accent); }
+        tbody tr { transition: background 0.12s; }
+        tbody tr:hover { background: var(--row-hover); }
+        .badge {
+            display: inline-grid;
+            place-items: center;
+            width: 24px;
+            height: 22px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: help;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .badge-s { background: transparent; box-shadow: inset 0 0 0 1px var(--border); color: var(--ink-muted); }
+        .badge-l { background: var(--accent); color: #ffffff; }
+        .column-toggles { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 0 20px 14px; }
+        .toggles-label { font-size: 12px; color: var(--ink-muted); margin-right: 2px; }
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            padding: 3px 10px 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ink-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle:has(input:checked) { color: var(--ink); background: var(--accent-soft); border-color: transparent; }
+        .toggle input { margin: 0; accent-color: var(--accent); }
+        td.has-hover { cursor: help; text-decoration: underline dotted var(--ink-faint); text-underline-offset: 3px; }
+        button.remove { padding: 0 7px; font-size: 12px; line-height: 22px; color: var(--ink-faint); border-color: transparent; background: none; }
+        button.remove:hover { color: var(--ink); border-color: var(--border); }
+
+        .game-cell { display: flex; align-items: center; gap: 12px; white-space: normal; min-width: 200px; max-width: 360px; }
+        .game-cell img { width: 72px; height: auto; border-radius: 4px; flex-shrink: 0; }
+        .game-cell a { font-weight: 600; }
+
+        .empty { text-align: center; padding: 48px 16px; }
+        .empty p { margin: 6px 0 0; }
+
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4px 40px; }
+        label { display: grid; grid-template-columns: 1fr 100px; gap: 12px; align-items: center; margin: 12px 0 2px; font-weight: 600; }
+        label input { padding: 6px 8px; }
+        .hint { color: var(--ink-muted); font-size: 12px; margin: 0 0 6px; }
+        .buttons { margin-top: 18px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        #status, #data-status { color: var(--good); }
+        #data-status.error { color: #c0392b; }
+    </style>
+</head>
+<body>
+    <main>
+        <header class="page-header">
+            <div class="logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V12M12 20V5M19 20v-9"/></svg>
+            </div>
+            <div>
+                <h1>Steam Revenue Estimator</h1>
+                <p>Track games from the revenue box on any Steam store page. Everything here recalculates with your current settings.</p>
+            </div>
+        </header>
+
+        <section aria-labelledby="tracked-heading">
+            <div id="dashboard-empty" class="card empty">
+                <h2 id="tracked-heading">No games tracked yet</h2>
+                <p class="muted">Open a game on the Steam store and click <strong>+ Track</strong> in the revenue estimate box.</p>
+            </div>
+
+            <div id="dashboard-content" hidden>
+                <div id="summary" class="summary"></div>
+
+                <div class="row-head">
+                    <h2>Tracked games</h2>
+                    <div class="controls">
+                        <select id="chart-metric" aria-label="Metric shown in the charts"></select>
+                        <button id="export-csv" type="button">Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="charts">
+                    <div class="card chart-card">
+                        <div class="row-head">
+                            <h3>By game</h3>
+                            <button id="toggle-all-games" class="link-button" type="button" hidden></button>
+                        </div>
+                        <p class="chart-note">Bars show the midpoint estimate; the thin line is the low–high range. Hover a bar for details.</p>
+                        <div id="chart-games" class="chart"></div>
+                    </div>
+
+                    <div class="card chart-card">
+                        <div class="row-head">
+                            <h3>By genre</h3>
+                            <div class="segmented" role="group" aria-label="Genre aggregation">
+                                <button type="button" data-genre-mode="total">Total</button>
+                                <button type="button" data-genre-mode="average">Avg per game</button>
+                            </div>
+                        </div>
+                        <p class="chart-note">Games with several genres count toward each one. Number of games in brackets.</p>
+                        <div id="chart-genres" class="chart"></div>
+                    </div>
+                </div>
+
+                <div class="card table-card">
+                    <div class="row-head"><h3>All tracked games</h3></div>
+                    <div id="column-toggles" class="column-toggles" role="group" aria-label="Show or hide table columns"></div>
+                    <div class="table-wrap">
+                        <table id="games-table"></table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" aria-labelledby="settings-heading">
+            <h2 id="settings-heading">Estimate settings</h2>
+            <p class="hint" style="margin-top: 4px;">Copies sold ≈ reviews × copies-per-review (the Boxleiter method). If you know real sales for a few games, tune these until the estimates match.</p>
+
+            <div class="settings-grid">
+                <div>
+                    <label>Copies per review (low) <input id="reviewMultiplierLow" type="number" min="1" step="1"></label>
+                    <label>Copies per review (high) <input id="reviewMultiplierHigh" type="number" min="1" step="1"></label>
+                    <p class="hint">Scaled up automatically for games released before 2020, which collected fewer reviews per copy.</p>
+                    <label>Realized price (% of list) <input id="realizedPriceRatio" type="number" min="0" max="100" step="1"></label>
+                    <p class="hint">Average price actually paid after discounts, bundles and regional pricing.</p>
+                </div>
+                <div>
+                    <label>Refund rate (%) <input id="refundRate" type="number" min="0" max="100" step="1"></label>
+                    <label>Sales tax / VAT (%) <input id="taxRate" type="number" min="0" max="100" step="1"></label>
+                    <p class="hint">Net to developer also subtracts Steam's tiered cut (30%, then 25% above $10M, then 20% above $50M).</p>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button id="save" class="primary" type="button">Save</button>
+                <button id="reset" type="button">Reset to defaults</button>
+                <span id="status"></span>
+            </div>
+        </section>
+        <section class="card" aria-labelledby="data-heading">
+            <h2 id="data-heading">Your data</h2>
+            <p class="hint" style="margin-top: 4px;">Tracked games live in this Chrome profile only. Download a backup to keep a copy, or to move your list to another computer. A shareable page is a single HTML file of this dashboard, with your current list, that anyone can open in a browser without the extension. Restoring merges into your current list and never removes anything. To look at one dataset at a time, back up, clear, then restore the one you want.</p>
+            <div class="buttons">
+                <button id="backup" type="button">Download backup (JSON)</button>
+                <button id="share-page" type="button">Download shareable page (HTML)</button>
+                <button id="restore" type="button">Restore from backup…</button>
+                <input id="restore-file" type="file" accept="application/json,.json" hidden>
+                <button id="clear-all" class="danger" type="button">Clear all tracked games…</button>
+                <span id="data-status"></span>
+            </div>
+        </section>
+    </main>
+
+    <script src="dist/settings.js"></script>
+    <script src="dist/estimator.js"></script>
+    <script src="dist/ui.js"></script>
+    <script src="dist/tracking.js"></script>
+    <script src="dist/backup.js"></script>
+    <script src="dist/scope.js"></script>
+    <script src="dist/dev-time.js"></script>
+    <script src="dist/share.js"></script>
+    <script src="dist/dashboard.js"></script>
+    <script src="dist/options.js"></script>
+</body>
+</html>
