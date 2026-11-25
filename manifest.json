@@ -12,7 +12,7 @@
     "content_scripts": [
         {
             "matches": ["https://store.steampowered.com/app/*"],
-            "js": ["dist/settings.js", "dist/estimator.js", "dist/ui.js", "dist/tracking.js", "dist/steam-api.js", "dist/scope.js", "dist/dev-time.js", "dist/content.js"],
+            "js": ["dist/settings.js", "dist/estimator.js", "dist/ui.js", "dist/tracking.js", "dist/steam-api.js", "dist/scope.js", "dist/dev-time.js", "dist/render.js", "dist/content.js"],
             "css": ["styles/widget.css"],
             "run_at": "document_idle"
         }

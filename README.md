@@ -77,3 +77,28 @@ All of the multipliers and percentages above can be changed in the extension's o
 ## License
 
 [MIT](LICENSE). Not affiliated with or endorsed by Valve Corporation. Steam is a trademark of Valve Corporation.
+
+## Phone version (web)
+
+The same estimate and dashboard also run as a web page, so you can use them on an iPhone (or any phone) by sharing a game from the Steam app. It reuses the extension's code: `src/web-app.ts` does the lookup, `src/render.ts` draws the same panel, and `web/storage.js` stands in for `chrome.storage` using the browser's local storage. The dashboard is the extension's own options page.
+
+Browsers can't call Steam's APIs directly, so a small Cloudflare Worker (`worker/steam-proxy.js`) fetches the data. Both pieces are free: GitHub Pages for public repos, and Cloudflare's free Workers plan (100,000 requests a day).
+
+### One-time setup
+
+1. **Turn on GitHub Pages.** In the repo, open **Settings → Pages** and set **Source** to **GitHub Actions**. Every push to `main` then builds and publishes the site (`.github/workflows/pages.yml`) at `https://<your-username>.github.io/steam-revenue-estimator/`.
+2. **Create the Worker.** Sign up at [dash.cloudflare.com](https://dash.cloudflare.com), go to **Workers & Pages → Create → Create Worker**, name it (for example `steam-proxy`), click **Deploy**, then **Edit code**. Replace the code with the contents of `worker/steam-proxy.js` and click **Deploy** again. Copy its URL (like `https://steam-proxy.<you>.workers.dev`).
+3. **Connect them.** Open the site, expand **Setup**, paste the Worker URL, and tap **Save**. To skip this step on every device, put the URL in `web/config.js` instead.
+4. **Add the share-sheet Shortcut (iPhone).** In the Shortcuts app, create a new shortcut:
+   - Tap the **ⓘ** (or settings) button and turn on **Show in Share Sheet**. Set it to receive **URLs** and **Text**.
+   - Add a **URL Encode** action with **Shortcut Input**.
+   - Add an **Open URLs** action with `https://<your-username>.github.io/steam-revenue-estimator/?url=` followed by the **URL Encoded Text** variable.
+   - Name it something like "Steam Estimate".
+
+Now in the Steam app, open a game, tap **Share**, and pick **Steam Estimate**. You can also paste a store link or app ID straight into the page.
+
+### Notes
+
+- Tracked games and settings are saved in the browser on that device, separate from the extension. Use **Download backup** and **Restore** on the dashboard to move them between the two.
+- Safari can clear a site's saved data if you don't visit it for a few weeks. If you track a lot of games, take a backup now and then.
+- To test locally, run `npm run build:web` and serve the `_site/` folder (for example `npx serve _site`).

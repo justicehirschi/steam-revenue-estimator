@@ -17,6 +17,14 @@ function isSharedCopy(): boolean {
     return typeof SRE_SHARED !== "undefined" && SRE_SHARED === true;
 }
 
+// Set by web/storage.js in the web (phone) version, which keeps data in the browser instead of the extension.
+declare const SRE_WEB: boolean | undefined;
+
+
+function isWebApp(): boolean {
+    return typeof SRE_WEB !== "undefined" && SRE_WEB === true;
+}
+
 
 async function createShareablePage(): Promise<string> {
     const snapshot: ShareSnapshot = {

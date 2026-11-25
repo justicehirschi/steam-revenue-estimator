@@ -5,7 +5,8 @@
     "description": "Chrome extension that shows estimated revenue on Steam store pages.",
     "scripts": {
         "build": "tsc",
-        "watch": "tsc --watch"
+        "watch": "tsc --watch",
+        "build:web": "tsc && node scripts/build-web.mjs"
     },
     "devDependencies": {
         "@types/chrome": "^0.0.287",
