@@ -27,6 +27,15 @@ async function _init(): Promise<void> {
         // A shared copy can't rebuild itself from extension files, and the "track on Steam" intro doesn't apply.
         shareButton.hidden = true;
         document.querySelector(".page-header p")!.textContent = "A snapshot of tracked Steam games with estimated revenue. Change the settings at the bottom to recalculate everything.";
+    } else if (isWebApp()) {
+        // The shareable page is built from extension files, so it's an extension-only feature.
+        shareButton.hidden = true;
+        const intro = document.querySelector(".page-header p")!;
+        intro.textContent = "Games you've tracked from the estimator. Everything here recalculates with your current settings. ";
+        const back = document.createElement("a");
+        back.href = "./";
+        back.textContent = "← Look up a game";
+        intro.append(back);
     } else {
         shareButton.addEventListener("click", _downloadShareablePage);
     }

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#1b2838">
+    <meta name="apple-mobile-web-app-title" content="Revenue Est.">
+    <title>Steam Revenue Estimator</title>
+    <link rel="stylesheet" href="styles/widget.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #1b2838;
+            color: #c6d4df;
+            font: 15px/1.45 -apple-system, system-ui, "Segoe UI", Arial, sans-serif;
+            -webkit-text-size-adjust: 100%;
+        }
+        main {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: max(20px, env(safe-area-inset-top)) 16px max(40px, env(safe-area-inset-bottom));
+        }
+        h1 { margin: 4px 0 2px; font-size: 20px; font-weight: 600; color: #ffffff; }
+        .tagline { margin: 0 0 16px; color: #8f98a0; font-size: 14px; }
+        a { color: #66c0f4; }
+
+        #lookup { display: flex; gap: 8px; margin-bottom: 16px; }
+        #lookup input, #setup input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 12px;
+            font: inherit;
+            font-size: 16px; /* 16px+ stops iOS zooming into the field */
+            color: #ffffff;
+            background: #316282;
+            border: 1px solid transparent;
+            border-radius: 6px;
+        }
+        #lookup input::placeholder { color: #a8c0d2; }
+        button.web-button {
+            padding: 10px 16px;
+            font: inherit;
+            font-weight: 600;
+            color: #ffffff;
+            background: linear-gradient(90deg, #47bfff, #1a44c2);
+            border: none;
+            border-radius: 6px;
+        }
+
+        /* Mobile tweaks for the shared panel styles. */
+        #sre-widget { font-size: 14px; border-radius: 8px; padding: 14px; }
+        #sre-widget .sre-title { font-size: 15px; color: #ffffff; text-transform: none; letter-spacing: 0; }
+        #sre-widget .sre-header { align-items: center; gap: 10px; }
+        #sre-widget .sre-actions { flex-shrink: 0; }
+        #sre-widget .sre-track { padding: 6px 12px; font-size: 13px; }
+        #sre-widget .sre-link { font-size: 13px; }
+        #sre-widget .sre-big { font-size: 28px; }
+        #sre-widget .sre-grid { gap: 6px 16px; }
+        #sre-widget .sre-footer { font-size: 12px; }
+        .web-header-image { display: block; width: 100%; height: auto; margin-bottom: 12px; border-radius: 4px; }
+        .web-tappable { cursor: pointer; text-decoration: underline dotted #67707b; text-underline-offset: 3px; }
+        .web-detail { grid-column: 1 / -1; padding: 6px 10px; margin: 2px 0 4px; white-space: pre-line; font-size: 12px; color: #c6d4df; background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+        .web-message { color: #8f98a0; }
+
+        nav { display: flex; gap: 18px; margin: 20px 0 8px; font-size: 15px; }
+        details { margin-top: 18px; padding: 12px 14px; background: rgba(0, 0, 0, 0.18); border-radius: 8px; color: #8f98a0; font-size: 14px; }
+        summary { cursor: pointer; color: #c6d4df; font-weight: 600; }
+        #setup-form { display: flex; gap: 8px; margin-top: 10px; }
+        details p { margin: 10px 0 0; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Steam Revenue Estimator</h1>
+        <p class="tagline">Share a game from the Steam app, or paste a store link.</p>
+
+        <form id="lookup" autocomplete="off">
+            <input id="lookup-input" type="text" inputmode="url" placeholder="Steam link or app ID" aria-label="Steam store link or app ID">
+            <button class="web-button" type="submit">Estimate</button>
+        </form>
+
+        <div id="result" aria-live="polite"></div>
+
+        <nav>
+            <a href="options.html">Dashboard &amp; settings</a>
+        </nav>
+
+        <details id="setup">
+            <summary>Setup</summary>
+            <form id="setup-form" autocomplete="off">
+                <input id="worker-url" type="url" placeholder="https://steam-proxy.you.workers.dev" aria-label="Worker URL">
+                <button class="web-button" type="submit">Save</button>
+            </form>
+            <p>Your Cloudflare Worker fetches Steam data for this page. Setup steps are in the project README.</p>
+        </details>
+    </main>
+
+    <script src="web/storage.js"></script>
+    <script src="web/config.js"></script>
+    <script src="dist/settings.js"></script>
+    <script src="dist/estimator.js"></script>
+    <script src="dist/ui.js"></script>
+    <script src="dist/tracking.js"></script>
+    <script src="dist/steam-api.js"></script>
+    <script src="dist/scope.js"></script>
+    <script src="dist/dev-time.js"></script>
+    <script src="dist/render.js"></script>
+    <script src="dist/web-app.js"></script>
+</body>
+</html>
